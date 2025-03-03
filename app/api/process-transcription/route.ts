@@ -121,7 +121,7 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     console.error('Error processing transcription:', error);
-    let errorMessage = 'Failed to process transcription';
+    const errorMessage = 'Failed to process transcription';
     let errorDescription = '';
     
     // If we have the transcription from the request body, include it

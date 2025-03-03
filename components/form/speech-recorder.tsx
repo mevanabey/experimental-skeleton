@@ -103,7 +103,7 @@ export const SpeechRecorder: React.FC<SpeechRecorderProps> = ({
         <div className="text-center mb-6">
           <p className="text-gray-600 dark:text-gray-400">
             Please speak clearly into your microphone to describe what happened.
-            We'll use this information to help fill out the incident report.
+            We&apos;ll use this information to help fill out the incident report.
           </p>
         </div>
 

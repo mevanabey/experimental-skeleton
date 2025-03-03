@@ -3,7 +3,6 @@
 import React, { useState } from 'react';
 import { MapForm } from '../maps/location-map';
 import mapboxgl from 'mapbox-gl';
-import { LocateFixedIcon } from 'lucide-react';
 import { SpeechRecorder } from './speech-recorder';
 import processTranscription from '../../services/transcription-processor';
 
@@ -24,6 +23,14 @@ interface Victim {
   religion: string;
   educationLevel: string;
   incomeLevel: string;
+}
+
+interface MapBoxFeature {
+  id: string;
+  place_name: string;
+  geometry: {
+    coordinates: [number, number];
+  };
 }
 
 interface FormValues {
@@ -164,12 +171,11 @@ export const IncidentForm = () => {
   const [currentVictim, setCurrentVictim] = useState<Victim | null>(null);
   const [currentVictimField, setCurrentVictimField] = useState<string>('');
   const [locationSearch, setLocationSearch] = useState<string>('');
-  const [locationSuggestions, setLocationSuggestions] = useState<any[]>([]);
+  const [locationSuggestions, setLocationSuggestions] = useState<MapBoxFeature[]>([]);
   const [coordinates, setCoordinates] = useState<{ lat: number; lng: number } | null>(null);
   const [description, setDescription] = useState<string>('');
   const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [selectedTime, setSelectedTime] = useState<string>(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }));
-  const [transcribedText, setTranscribedText] = useState<string>('');
   const [isProcessingTranscription, setIsProcessingTranscription] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessingAudio, setIsProcessingAudio] = useState(false);
@@ -189,7 +195,6 @@ export const IncidentForm = () => {
     const currentField = incidentFields[currentStep];
     
     if (currentField.isMultiSelect) {
-      // For multi-select fields, toggle the selection
       setFormValues((prev) => {
         const currentValues = prev[name] as string[] || [];
         if (currentValues.includes(value)) {
@@ -199,8 +204,6 @@ export const IncidentForm = () => {
         }
       });
     } else {
-      // For single-select fields
-      const currentValue = formValues[name];
       setFormValues((prev) => ({ ...prev, [name]: value }));
       
       // If this is a manual selection (either selecting a new value or reselecting the same value)
@@ -228,7 +231,7 @@ export const IncidentForm = () => {
         );
         const data = await response.json();
         if (data.features) {
-          setLocationSuggestions(data.features);
+          setLocationSuggestions(data.features as MapBoxFeature[]);
         }
       } catch (error) {
         console.error('Error fetching location suggestions:', error);
@@ -239,7 +242,7 @@ export const IncidentForm = () => {
     }
   };
 
-  const selectLocation = (suggestion: any) => {
+  const selectLocation = (suggestion: MapBoxFeature) => {
     setFormValues((prev) => ({ 
       ...prev, 
       incidentLocation: suggestion.place_name,
@@ -325,7 +328,7 @@ export const IncidentForm = () => {
       // Check if all fields are filled
       const allFieldsFilled = Object.entries(updatedVictim)
         .filter(([key]) => key !== 'id')
-        .every(([_, value]) => value !== '');
+        .every(([, value]) => value !== '');
       
       // If all fields are filled, save the victim
       if (allFieldsFilled) {
@@ -356,18 +359,7 @@ export const IncidentForm = () => {
     }
   };
 
-  const handleDateTimeSelect = () => {
-    setFormValues((prev) => ({
-      ...prev,
-      incidentDateTime: { date: selectedDate, time: selectedTime }
-    }));
-    if (currentStep < incidentFields.length - 1) {
-      setCurrentStep(currentStep + 1);
-    }
-  };
-
   const handleTranscriptionComplete = async (transcription: string) => {
-    setTranscribedText(transcription);
     setIsProcessingTranscription(true);
 
     try {
