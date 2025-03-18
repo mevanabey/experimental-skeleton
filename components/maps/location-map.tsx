@@ -92,7 +92,7 @@ export const MapForm: React.FC<MapFormProps> = ({ coordinates, setCoordinates })
     return () => {
       map.current?.remove();
     };
-  }, []);
+  }, [coordinates, setCoordinates]);
 
   // Update map when coordinates change
   useEffect(() => {
